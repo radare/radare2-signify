@@ -18,3 +18,24 @@ $(SIG):
 $(PUB):
 	mkdir -p ~/.signify/
 	signify -G -p $(PUB) -s $(SEC) -c $(USR)
+
+trust:
+	@for a in `cat TrustedGits` ; do \
+		k=`echo $$a | cut -d = -f1` ; \
+		v=`echo $$a | cut -d = -f2-` ; \
+		if [ -d git/$$k ]; then \
+			( cd git/$$k ; \
+			git pull > /dev/null ) ; \
+		else \
+			git clone $$v git/$$k ; \
+		fi ; \
+		printf "$$k\t\t" ; \
+		cmp git/$$k/$(SIG) $(SIG) ; \
+		if [ $$? = 0 ]; then  \
+			echo "Trusted" ; \
+		else \
+			echo "Untrusted" ; \
+		fi ; \
+	done
+
+.PHONY: all trust
