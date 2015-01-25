@@ -16,7 +16,7 @@ SIG=$(FILE).sig
 
 all: $(PUB) $(SIG)
 	@echo "Usage: make [get|sign|verify|trust] FILE=<radare2-0.9.8.tar.gz>"
-	@echo 'Also see: `verify-all` and `sign-all` targets'
+	@echo 'Also see: `get-all`, `trust-all`, `verify-all` and `sign-all` targets'
 
 include targets.mk
 
@@ -33,6 +33,9 @@ $(WWW)/$(FILE):
 
 get:
 	@$(MAKE) $(FILE)
+
+get-all:
+	for a in $(FILES) ; do $(MAKE) $$a ; done
 
 $(SIG):
 	$(SIGNIFY) -S -x $(SIG) -s $(SEC) -m $(FILE)
