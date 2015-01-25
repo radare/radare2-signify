@@ -2,53 +2,53 @@ USR=pancake@radare2
 PUB=$(USR).pub
 SEC=~/.signify/$(USR).secret
 WWW=rada.re/get
+WGET?=wget
 
 # Release version
 R2V=0.9.7
 R2V=0.9.8
-MSG=radare2-$(R2V).tar.xz
-SIG=$(MSG).sig
+R2V_W32=0.9.8.git
+R2V_OSX=0.9.8
+
+FILE=radare2-$(R2V).tar.xz
+SIG=$(FILE).sig
 
 all: $(PUB) $(SIG)
+	@echo "Usage: make [get|sign|verify|trust] FILE=<radare2-0.9.8.tar.gz>"
+	@echo 'Also see: `verify-all` and `sign-all` targets'
 
-$(WWW)/$(MSG):
-	wget -qc $(WWW)/$(MSG)
-	signify -V -x $(SIG) -p $(PUB) -m $(MSG)
+include targets.mk
 
-define getand =
-	wget -O android-$(1)-$(2).tar.gz $(WWW)/pkg/android/$(1)/$(2)
-endef
+$(WWW)/$(FILE):
+	$(WGET) -qc $(WWW)/$(FILE)
+	signify -V -x $(SIG) -p $(PUB) -m $(FILE)
 
-arm android-arm:
-	$(call getand,arm,stable)
-	$(call getand,arm,unstable)
-
-aarch64 android-aarch64:
-	$(call getand,aarch64,stable)
-	$(call getand,aarch64,unstable)
-
-mips android-mips:
-	$(call getand,mips,stable)
-	$(call getand,mips,unstable)
-
-x86 android-x86:
-	$(call getand,x86,stable)
-	$(call getand,x86,unstable)
-
-android: arm aarch64 mips x86
+get:
+	@$(MAKE) $(FILE)
 
 $(SIG):
-	signify -S -x $(SIG) -s $(SEC) -m $(MSG)
+	signify -S -x $(SIG) -s $(SEC) -m $(FILE)
 
 $(PUB):
-	mkdir -p ~/.signify/
+	@mkdir -p ~/.signify/
 	signify -G -p $(PUB) -s $(SEC) -c $(USR)
 
 verify:
-	signify -V -x $(SIG) -p $(PUB) -m $(MSG)
+	@printf "$(FILE)\t"
+	@signify -V -x $(SIG) -p $(PUB) -m $(FILE)
+
+verify-all:
+	@for a in *.sig ; do $(MAKE) -s verify FILE=`echo $$a | sed -e s,.sig,,` || exit 1 ; done
+
+sign:
+	@printf "$(FILE)\t"
+	@signify -S -x $(SIG) -s $(SEC) -m $(FILE)
+
+sign-all:
+	@for a in *.sig ; do $(MAKE) -s sign FILE=`echo $$a | sed -e s,.sig,,` || exit 1 ; done
 
 trust:
-	mkdir -p git
+	@mkdir -p git
 	@for a in `cat TrustedGits` ; do \
 		k=`echo $$a | cut -d = -f1` ; \
 		v=`echo $$a | cut -d = -f2-` ; \
@@ -58,13 +58,13 @@ trust:
 		else \
 			git clone $$v git/$$k ; \
 		fi ; \
-		printf "$$k\t\t" ; \
-		cmp git/$$k/$(SIG) $(SIG) ; \
+		printf "$$FILE\t$$k\t\t" ; \
+		cmp git/$$k/$(SIG) $(SIG) 2> /dev/null ; \
 		if [ $$? = 0 ]; then  \
-			echo "Trusted" ; \
+			printf "\033[32mTrusted\033[0m\\n" ; \
 		else \
-			echo "Untrusted" ; \
+			printf "\033[31mUntrusted\033[0m\\n" ; \
 		fi ; \
 	done
 
-.PHONY: all trust
+.PHONY: get trust sign sign-all verify verify-all arm mips x86 aarch64
