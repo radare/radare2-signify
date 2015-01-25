@@ -3,6 +3,7 @@ PUB=$(USR).pub
 SEC=~/.signify/$(USR).secret
 WWW=rada.re/get
 WGET?=wget
+SIGNIFY=signify
 
 # Release version
 R2V=0.9.7
@@ -19,30 +20,38 @@ all: $(PUB) $(SIG)
 
 include targets.mk
 
+signify:
+	git clone https://github.com/aperezdc/signify.git
+	cd signify ; $(MAKE)
+
+install-signify signify-install:
+	cp -f signify/signify /usr/bin
+
 $(WWW)/$(FILE):
 	$(WGET) -qc $(WWW)/$(FILE)
-	signify -V -x $(SIG) -p $(PUB) -m $(FILE)
+	$(SIGNIFY) -V -x $(SIG) -p $(PUB) -m $(FILE)
 
 get:
 	@$(MAKE) $(FILE)
 
 $(SIG):
-	signify -S -x $(SIG) -s $(SEC) -m $(FILE)
+	$(SIGNIFY) -S -x $(SIG) -s $(SEC) -m $(FILE)
 
 $(PUB):
 	@mkdir -p ~/.signify/
-	signify -G -p $(PUB) -s $(SEC) -c $(USR)
+	$(SIGNIFY) -G -p $(PUB) -s $(SEC) -c $(USR)
 
 verify:
 	@printf "$(FILE)\t"
-	@signify -V -x $(SIG) -p $(PUB) -m $(FILE)
+	$(SIGNIFY) -V -x $(SIG) -p $(PUB) -m $(FILE)
 
 verify-all:
 	@for a in *.sig ; do $(MAKE) -s verify FILE=`echo $$a | sed -e s,.sig,,` || exit 1 ; done
 
 sign:
 	@printf "$(FILE)\t"
-	@signify -S -x $(SIG) -s $(SEC) -m $(FILE)
+	[ ! -f $(FILE) ] && $(MAKE) $(FILE) || true
+	$(SIGNIFY) -S -x $(SIG) -s $(SEC) -m $(FILE)
 
 sign-all:
 	@for a in *.sig ; do $(MAKE) -s sign FILE=`echo $$a | sed -e s,.sig,,` || exit 1 ; done
@@ -66,5 +75,8 @@ trust:
 			printf "\033[31mUntrusted\033[0m\\n" ; \
 		fi ; \
 	done
+
+trust-all:
+	@for a in *.sig ; do $(MAKE) -s trust FILE=`echo $$a | sed -e s,.sig,,` || exit 1 ; done
 
 .PHONY: get trust sign sign-all verify verify-all arm mips x86 aarch64
