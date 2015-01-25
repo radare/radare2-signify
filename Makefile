@@ -72,9 +72,10 @@ trust:
 			git clone $$v git/$$k ; \
 		fi ; \
 		printf "$$FILE\t$$k\t\t" ; \
+		cp -f $(FILE) git/$$k/$(FILE) ; \
 		cmp git/$$k/$$k@radare2.pub $$k@radare2.pub ; \
 		if [ $$? = 0 ]; then  \
-			(cd git/$$k ; $(MAKE) verify USR=$$k@radare2 MSG=$(MSG) ) ; \
+			(cd git/$$k ; $(MAKE) verify USR=$$k@radare2 FILE=$(FILE) ) ; \
 			if [ $$? = 0 ]; then  \
 				printf "\033[32mTrusted\033[0m\\n" ; \
 			else \
