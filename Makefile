@@ -1,4 +1,4 @@
-USR=pancake@radare2
+USR=$(cat OWNER)
 PUB=$(USR).pub
 SEC=~/.signify/$(USR).secret
 WWW=rada.re/get
