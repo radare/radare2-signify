@@ -73,4 +73,14 @@ radare2-$(R2V_OSX).pkg:
 osx: radare2-$(R2V_OSX).pkg
 	@$(MAKE) verify FILE=radare2-$(R2V_OSX).pkg
 
+# IOS
+R2V_IOS=0.9.8.git7
+FILE_IOS=radare2_$(R2V_IOS)_iphoneos-arm.deb
+
+$(FILE_IOS):
+	$(WGET) -c http://cydia.radare.org/debs/$(FILE_IOS)
+
+ios: $(FILE_IOS)
+	@$(MAKE) verify FILE=$(FILE_IOS)
+
 android: arm aarch64 mips x86

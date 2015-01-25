@@ -46,6 +46,7 @@ $(PUB):
 
 verify:
 	@printf "$(FILE)\t"
+	@[ ! -f $(FILE) ] && $(MAKE) $(FILE) || true
 	$(SIGNIFY) -V -x $(SIG) -p $(PUB) -m $(FILE)
 
 verify-all:
@@ -53,7 +54,7 @@ verify-all:
 
 sign:
 	@printf "$(FILE)\t"
-	[ ! -f $(FILE) ] && $(MAKE) $(FILE) || true
+	@[ ! -f $(FILE) ] && $(MAKE) $(FILE) || true
 	$(SIGNIFY) -S -x $(SIG) -s $(SEC) -m $(FILE)
 
 sign-all:
