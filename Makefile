@@ -1,4 +1,5 @@
-USR=$(cat OWNER)
+CWD=$(shell pwd)
+USR=$(shell cat ${CWD}/OWNER)
 PUB=$(USR).pub
 SEC=~/.signify/$(USR).secret
 WWW=rada.re/get
